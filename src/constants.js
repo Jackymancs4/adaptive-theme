@@ -1,4 +1,5 @@
 const DEFAULT_CONFIG = {
-    honorThemeColor: false,
-    enableTabLine: true,
-  }
+  honorThemeColor: false,
+  showBorder: true,
+  honorIfDarker: false,
+}

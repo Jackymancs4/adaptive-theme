@@ -99,13 +99,12 @@ function onCaptured(imageUri) {
     canvasData = canvasContext.getImageData(0, 0, 100, 10).data;
     canvasIndex = 510 * 4;
 
-    let colorUI = rgbToHex(canvasData[canvasIndex], canvasData[canvasIndex + 1], canvasData[canvasIndex + 2], )
+    let colorUI = rgbToHex(canvasData[canvasIndex], canvasData[canvasIndex + 1], canvasData[canvasIndex + 2])
     let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
 
     let themeProposal = getTheme(colorUI, colorText);
 
     if (currentActiveTab) {
-      //
       indexedColorMap[currentActiveTab] = themeProposal.colors;
     }
 
@@ -115,7 +114,7 @@ function onCaptured(imageUri) {
 }
 
 function onError(error) {
-
+  console.error(error)
 }
 
 /*
@@ -131,28 +130,54 @@ function notify(message, sender) {
       }
       let gettingItem = browser.storage.local.get();
       gettingItem.then(refreshAsync, onError);
+
+      indexedColorMap = new Array();
+      indexedStateMap = new Array();
+      currentActiveTab = null;
+      pendingApplyColor = null;
+
     }
 
     if (message.kind == 'theme-color' && configData.honorThemeColor) {
 
-      let colorUI = message.value
-      let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
+      function updateThemeOnNotify() {
+        let colorUI = message.value
+        let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
 
-      let themeProposal = getTheme(colorUI, colorText);
+        let themeProposal = getTheme(colorUI, colorText);
 
-      pendingApplyColor = themeProposal.colors;
-      indexedColorMap[sender.tab.url] = pendingApplyColor;
+        pendingApplyColor = themeProposal.colors;
+        indexedColorMap[sender.tab.url] = pendingApplyColor;
 
-      // update the theme, if the message came from the active tab
-      var gettingActiveTab = browser.tabs.query({
-        active: true,
-        currentWindow: true
-      });
-      gettingActiveTab.then(function (activeTabs) {
-        if (activeTabs[0].id === sender.tab.id) {
-          util_custom_update(themeProposal);
+        // update the theme, if the message came from the active tab
+        var gettingActiveTab = browser.tabs.query({
+          active: true,
+          currentWindow: true
+        });
+        gettingActiveTab.then(function (activeTabs) {
+          if (activeTabs[0].id === sender.tab.id) {
+            util_custom_update(themeProposal);
+          }
+        });
+      }
+
+      if (configData.honorIfDarker) {
+
+        function onGetThemeOnNotify(themeInfo) {
+          if (themeInfo.colors) {
+            if (message.value == getDarker(message.value, themeInfo.colors.frame)) {
+              updateThemeOnNotify()
+            }
+          }
         }
-      });
+
+        var themeInfo = browser.theme.getCurrent();
+        themeInfo.then(onGetThemeOnNotify, onError)
+
+      } else {
+        updateThemeOnNotify()
+      }
+
     }
   }
 }
@@ -166,8 +191,14 @@ browser.runtime.onMessage.addListener(notify);
 function util_custom_update(themeProposal) {
   let themeProposal_copy = JSON.parse(JSON.stringify(themeProposal));
 
-  if (!configData.enableTabLine) {
-    delete themeProposal_copy.colors.tab_line;
+  if (!configData.showBorder) {
+
+    delete themeProposal_copy.colors.popup_border;
+    delete themeProposal_copy.colors.sidebar_border;
+    delete themeProposal_copy.colors.toolbar_field_border;
+    // delete themeProposal_copy.colors.toolbar_top_separator;
+    delete themeProposal_copy.colors.toolbar_bottom_separator;
+
   }
 
   browser.theme.update(themeProposal_copy);
@@ -183,7 +214,7 @@ function rgbToHex(r, g, b) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
+function getLuminance(bgColor) {
   var color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
   var r = parseInt(color.substring(0, 2), 16); // hexToR
   var g = parseInt(color.substring(2, 4), 16); // hexToG
@@ -195,7 +226,20 @@ function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
     }
     return Math.pow((col + 0.055) / 1.055, 2.4);
   });
-  var L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+
+  return (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+}
+
+function getDarker(firstColor, secondColor) {
+
+  let firstColorLuminance = getLuminance(firstColor)
+  let secondColorLuminance = getLuminance(secondColor)
+
+  return firstColorLuminance < secondColorLuminance ? firstColor : secondColor;
+}
+
+function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
+  var L = getLuminance(bgColor)
   return (L > 0.179) ? darkColor : lightColor;
 }
 
@@ -211,12 +255,12 @@ function getTheme(colorUI, colorText) {
     "ntp_background": colorUI,
     "ntp_text": colorText,
     "popup": colorUI,
-    "popup_border": null,
+    "popup_border": colorUI,
     "popup_highlight": null,
     "popup_highlight_text": colorText,
     "popup_text": colorText,
     "sidebar": colorUI,
-    "sidebar_border": null,
+    "sidebar_border": colorUI,
     "sidebar_highlight": null,
     "sidebar_highlight_text": colorText,
     "sidebar_text": colorText,
@@ -227,9 +271,9 @@ function getTheme(colorUI, colorText) {
     "tab_selected": colorUI,
     "tab_text": colorText,
     "toolbar": colorUI,
-    "toolbar_bottom_separator": null,
+    "toolbar_bottom_separator": colorUI,
     "toolbar_field": null,
-    "toolbar_field_border": null,
+    "toolbar_field_border": colorUI,
     "toolbar_field_border_focus": null,
     "toolbar_field_focus": null,
     "toolbar_field_highlight": null,
