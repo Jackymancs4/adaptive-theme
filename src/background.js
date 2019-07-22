@@ -99,13 +99,12 @@ function onCaptured(imageUri) {
     canvasData = canvasContext.getImageData(0, 0, 100, 10).data;
     canvasIndex = 510 * 4;
 
-    let colorUI = rgbToHex(canvasData[canvasIndex], canvasData[canvasIndex + 1], canvasData[canvasIndex + 2], )
+    let colorUI = rgbToHex(canvasData[canvasIndex], canvasData[canvasIndex + 1], canvasData[canvasIndex + 2])
     let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
 
     let themeProposal = getTheme(colorUI, colorText);
 
     if (currentActiveTab) {
-      //
       indexedColorMap[currentActiveTab] = themeProposal.colors;
     }
 
@@ -115,7 +114,7 @@ function onCaptured(imageUri) {
 }
 
 function onError(error) {
-
+  console.error(error)
 }
 
 /*
@@ -131,28 +130,54 @@ function notify(message, sender) {
       }
       let gettingItem = browser.storage.local.get();
       gettingItem.then(refreshAsync, onError);
+
+      indexedColorMap = new Array();
+      indexedStateMap = new Array();
+      currentActiveTab = null;
+      pendingApplyColor = null;
+
     }
 
     if (message.kind == 'theme-color' && configData.honorThemeColor) {
 
-      let colorUI = message.value
-      let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
+      function updateThemeOnNotify() {
+        let colorUI = message.value
+        let colorText = pickTextColorBasedOnBgColorAdvanced(colorUI, '#ffffff', '#000000')
 
-      let themeProposal = getTheme(colorUI, colorText);
+        let themeProposal = getTheme(colorUI, colorText);
 
-      pendingApplyColor = themeProposal.colors;
-      indexedColorMap[sender.tab.url] = pendingApplyColor;
+        pendingApplyColor = themeProposal.colors;
+        indexedColorMap[sender.tab.url] = pendingApplyColor;
 
-      // update the theme, if the message came from the active tab
-      var gettingActiveTab = browser.tabs.query({
-        active: true,
-        currentWindow: true
-      });
-      gettingActiveTab.then(function (activeTabs) {
-        if (activeTabs[0].id === sender.tab.id) {
-          util_custom_update(themeProposal);
+        // update the theme, if the message came from the active tab
+        var gettingActiveTab = browser.tabs.query({
+          active: true,
+          currentWindow: true
+        });
+        gettingActiveTab.then(function (activeTabs) {
+          if (activeTabs[0].id === sender.tab.id) {
+            util_custom_update(themeProposal);
+          }
+        });
+      }
+
+      if (configData.honorIfDarker) {
+
+        function onGetThemeOnNotify(themeInfo) {
+          if (themeInfo.colors) {
+            if (message.value == getDarker(message.value, themeInfo.colors.frame)) {
+              updateThemeOnNotify()
+            }
+          }
         }
-      });
+
+        var themeInfo = browser.theme.getCurrent();
+        themeInfo.then(onGetThemeOnNotify, onError)
+
+      } else {
+        updateThemeOnNotify()
+      }
+
     }
   }
 }
@@ -189,7 +214,7 @@ function rgbToHex(r, g, b) {
   return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
+function getLuminance(bgColor) {
   var color = (bgColor.charAt(0) === '#') ? bgColor.substring(1, 7) : bgColor;
   var r = parseInt(color.substring(0, 2), 16); // hexToR
   var g = parseInt(color.substring(2, 4), 16); // hexToG
@@ -201,7 +226,20 @@ function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
     }
     return Math.pow((col + 0.055) / 1.055, 2.4);
   });
-  var L = (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+
+  return (0.2126 * c[0]) + (0.7152 * c[1]) + (0.0722 * c[2]);
+}
+
+function getDarker(firstColor, secondColor) {
+
+  let firstColorLuminance = getLuminance(firstColor)
+  let secondColorLuminance = getLuminance(secondColor)
+
+  return firstColorLuminance < secondColorLuminance ? firstColor : secondColor;
+}
+
+function pickTextColorBasedOnBgColorAdvanced(bgColor, lightColor, darkColor) {
+  var L = getLuminance(bgColor)
   return (L > 0.179) ? darkColor : lightColor;
 }
 

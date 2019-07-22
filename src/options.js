@@ -17,9 +17,19 @@ function checkStoredSettings(item) {
 
   if (configData.honorThemeColor) {
     document.querySelector('#config_HTML_honorthemecolor').setAttribute('checked', configData.honorThemeColor);
+    document.querySelector('#config_HTML_honordarker').removeAttribute('disabled');
   } else {
     document.querySelector('#config_HTML_honorthemecolor').removeAttribute('checked');
+    document.querySelector('#config_HTML_honordarker').setAttribute('disabled', true);
   }
+
+  if (configData.honorIfDarker) {
+    document.querySelector('#config_HTML_honordarker').setAttribute('checked', configData.honorIfDarker);
+  } else {
+    document.querySelector('#config_HTML_honordarker').removeAttribute('checked');
+  }
+
+
 }
 
 function onError(error) {
@@ -28,12 +38,19 @@ function onError(error) {
 
 function updateSettings(e) {
 
-
   let dom_border_state = document.getElementById('config_HTML_border').checked;
   let dom_honorthemecolor_state = document.getElementById('config_HTML_honorthemecolor').checked;
+  let dom_honordarker_state = document.getElementById('config_HTML_honordarker').checked;
 
   configData.showBorder = dom_border_state;
   configData.honorThemeColor = dom_honorthemecolor_state;
+  configData.honorIfDarker = dom_honordarker_state;
+
+  if (dom_honorthemecolor_state) {
+    document.querySelector('#config_HTML_honordarker').removeAttribute('disabled');
+  } else {
+    document.querySelector('#config_HTML_honordarker').setAttribute('disabled', true);
+  }
 
   browser.storage.local.set({
     configData
@@ -51,5 +68,6 @@ gettingItem.then(checkStoredSettings, onError);
 document.addEventListener('DOMContentLoaded', function () {
   document.querySelector('#config_HTML_border').onchange = updateSettings;
   document.querySelector('#config_HTML_honorthemecolor').onchange = updateSettings;
+  document.querySelector('#config_HTML_honordarker').onchange = updateSettings;
 
 }, false);
