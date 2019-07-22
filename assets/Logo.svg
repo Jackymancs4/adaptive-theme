@@ -148,30 +148,30 @@
    id="circle42"
    r="45"
    cy="437"
-   cx="75.3"
+   cx="75"
    class="st4" />
 
 <circle
    id="circle44"
    r="85"
-   cy="396.7"
-   cx="397.1"
+   cy="397"
+   cx="397"
    class="st3" />
 
 <circle
    r="47.5"
-   style="stroke-width:0.981457"
+   style="stroke-width:1"
    id="ellipse46"
    cy="274"
-   cx="86.099998"
+   cx="86"
    class="st5" />
 
 <circle
-   style="stroke-width:0.988764"
+   style="stroke-width:1"
    r="70"
    id="ellipse48"
-   cy="100.3"
-   cx="248.89999"
+   cy="100"
+   cx="250"
    class="st2" />
 
 </svg>
