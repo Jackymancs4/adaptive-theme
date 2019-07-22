@@ -166,8 +166,14 @@ browser.runtime.onMessage.addListener(notify);
 function util_custom_update(themeProposal) {
   let themeProposal_copy = JSON.parse(JSON.stringify(themeProposal));
 
-  if (!configData.enableTabLine) {
-    delete themeProposal_copy.colors.tab_line;
+  if (!configData.showBorder) {
+
+    delete themeProposal_copy.colors.popup_border;
+    delete themeProposal_copy.colors.sidebar_border;
+    delete themeProposal_copy.colors.toolbar_field_border;
+    // delete themeProposal_copy.colors.toolbar_top_separator;
+    delete themeProposal_copy.colors.toolbar_bottom_separator;
+
   }
 
   browser.theme.update(themeProposal_copy);
@@ -211,12 +217,12 @@ function getTheme(colorUI, colorText) {
     "ntp_background": colorUI,
     "ntp_text": colorText,
     "popup": colorUI,
-    "popup_border": null,
+    "popup_border": colorUI,
     "popup_highlight": null,
     "popup_highlight_text": colorText,
     "popup_text": colorText,
     "sidebar": colorUI,
-    "sidebar_border": null,
+    "sidebar_border": colorUI,
     "sidebar_highlight": null,
     "sidebar_highlight_text": colorText,
     "sidebar_text": colorText,
@@ -227,9 +233,9 @@ function getTheme(colorUI, colorText) {
     "tab_selected": colorUI,
     "tab_text": colorText,
     "toolbar": colorUI,
-    "toolbar_bottom_separator": null,
+    "toolbar_bottom_separator": colorUI,
     "toolbar_field": null,
-    "toolbar_field_border": null,
+    "toolbar_field_border": colorUI,
     "toolbar_field_border_focus": null,
     "toolbar_field_focus": null,
     "toolbar_field_highlight": null,
