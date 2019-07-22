@@ -1,3 +1,23 @@
 {
-    "name": "aaa"
+  "name": "adaptive-theme",
+  "version": "0.99.0",
+  "description": "## Table of Contents",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "web-ext lint -s ./src",
+    "build": "web-ext build -s ./src -a ./dist "
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jackymancs4/adaptive-theme.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jackymancs4/adaptive-theme/issues"
+  },
+  "homepage": "https://github.com/Jackymancs4/adaptive-theme#readme",
+  "dependencies": {
+    "web-ext": "^3.1.1"
+  }
 }
