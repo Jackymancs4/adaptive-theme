@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" height="512" width="512" viewBox="0 0 512 512">
+  <style id="style10">
+    .st0{fill:none;stroke:#000;stroke-miterlimit:10}.st2,.st3{opacity:.7;fill:#d04391}.st3{fill:#e52421}
+  </style>
+  <path id="polygon36" opacity=".7" fill="#f4973f" d="M313.5 134.5L188.9 64.9l-155 354.6 77.2 45.4z"/>
+  <path id="polygon38" d="M475.64715 363.90993l-165.201-299.701334-123.65303 65.574064 135.74968 309.1179z" class="st2" opacity=".7" fill="#d04391"/>
+  <path id="polygon40" transform="rotate(.339 243.5 352.85)" d="M62.00003 315.87424L366 475.7l60.7-159.4-326.21919-86.28392z" class="st3" opacity=".7" fill="#e52421"/>
+  <circle cx="75" cy="437" r="45" id="circle42" fill="#f4973f"/>
+  <circle class="st3" cx="397" cy="397" r="85" id="circle44"/>
+  <circle cx="86" cy="274" id="ellipse46" r="47.5" fill="#e52421"/>
+  <circle class="st2" cx="250" cy="100" id="ellipse48" r="70"/>
+</svg>
